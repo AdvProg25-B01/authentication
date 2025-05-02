@@ -23,11 +23,43 @@ public class AuthService {
     private final UserFactory userFactory;
 
     public AuthResponse register(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new CustomException("Email already exists");
+        }
+
+        User user = userFactory.createUser(request.getName(), request.getEmail(), request.getPassword(), request.getRole());
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getEmail());
+        return new AuthResponse(token, user.getRole().name());
     }
 
     public AuthResponse login(AuthRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(), request.getPassword()
+                )
+        );
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomException("Invalid credentials"));
+
+        String token = jwtUtil.generateToken(user.getEmail());
+        return new AuthResponse(token, user.getRole().name());
     }
 
     public String changePassword(UpdatePasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new CustomException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return "Password updated successfully";
     }
 }
