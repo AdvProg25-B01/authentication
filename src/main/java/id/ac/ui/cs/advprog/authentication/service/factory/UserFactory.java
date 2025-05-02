@@ -8,5 +8,12 @@ import org.springframework.stereotype.Component;
 public class UserFactory {
 
     public User createUser(String name, String email, String password, Role role) {
+        return User.builder()
+                .name(name)
+                .email(email)
+                .password(password)
+                .role(role)
+                .active(true)
+                .build();
     }
 }
