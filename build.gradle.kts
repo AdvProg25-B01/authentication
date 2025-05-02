@@ -45,6 +45,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 
     runtimeOnly("org.postgresql:postgresql")
+    testImplementation("com.h2database:h2:2.2.220")
 }
 
 tasks.withType<Test> {
