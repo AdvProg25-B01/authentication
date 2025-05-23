@@ -27,25 +27,17 @@ class AdminDataInitializerTest {
     @InjectMocks
     private AdminDataInitializer adminDataInitializer;
 
-    @BeforeEach
-    void setUp() {
-        // Common setup if needed
-    }
-
     @Test
     void whenNoAdminExists_shouldCreateDefaultAdmin() throws Exception {
-        // Arrange
-        String defaultAdminEmail = "admin@example.com";
-        String defaultAdminPassword = "admin123";
+        String defaultAdminEmail = "admin@gmail.com";
+        String defaultAdminPassword = "Admin123!";
         String encodedPassword = "encodedPassword";
 
         when(userRepository.findByEmail(defaultAdminEmail)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(defaultAdminPassword)).thenReturn(encodedPassword);
 
-        // Act
         adminDataInitializer.run();
 
-        // Assert
         verify(userRepository).findByEmail(defaultAdminEmail);
         verify(passwordEncoder).encode(defaultAdminPassword);
 
@@ -59,8 +51,7 @@ class AdminDataInitializerTest {
 
     @Test
     void whenAdminExists_shouldNotCreateDefaultAdmin() throws Exception {
-        // Arrange
-        String defaultAdminEmail = "admin@example.com";
+        String defaultAdminEmail = "admin@gmail.com";
         User existingAdmin = User.builder()
                 .email(defaultAdminEmail)
                 .password("existingEncodedPassword")
@@ -70,10 +61,8 @@ class AdminDataInitializerTest {
 
         when(userRepository.findByEmail(defaultAdminEmail)).thenReturn(Optional.of(existingAdmin));
 
-        // Act
         adminDataInitializer.run();
 
-        // Assert
         verify(userRepository).findByEmail(defaultAdminEmail);
         verifyNoMoreInteractions(passwordEncoder);
         verify(userRepository, never()).save(any());
