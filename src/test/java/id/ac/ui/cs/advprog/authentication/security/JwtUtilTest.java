@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -17,7 +16,6 @@ import java.util.Date;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class JwtUtilTest {
@@ -34,74 +32,114 @@ public class JwtUtilTest {
     }
 
     @Test
-    void generateToken_ValidUsername_ReturnsToken() {
-        // Act
-        String token = jwtUtil.generateToken(testUsername);
+    void generateAccessToken_ValidUsername_ReturnsToken() {
+        String token = jwtUtil.generateAccessToken(testUsername);
 
-        // Assert
         assertNotNull(token);
-        assertTrue(token.length() > 0);
+        assertFalse(token.isEmpty());
+    }
+
+    @Test
+    void generateRefreshToken_ValidUsername_ReturnsToken() {
+        String token = jwtUtil.generateRefreshToken(testUsername);
+
+        assertNotNull(token);
+        assertFalse(token.isEmpty());
     }
 
     @Test
     void extractUsername_ValidToken_ReturnsUsername() {
-        // Arrange
-        String token = jwtUtil.generateToken(testUsername);
+        String token = jwtUtil.generateAccessToken(testUsername);
 
-        // Act
         String extractedUsername = jwtUtil.extractUsername(token);
 
-        // Assert
         assertEquals(testUsername, extractedUsername);
     }
 
     @Test
-    void validateToken_ValidTokenAndUsername_ReturnsTrue() {
-        // Arrange
-        String token = jwtUtil.generateToken(testUsername);
+    void extractExpiration_ValidToken_ReturnsFutureDate() {
+        String token = jwtUtil.generateAccessToken(testUsername);
 
-        // Act
-        boolean isValid = jwtUtil.validateToken(token, testUsername);
+        Date expiration = jwtUtil.extractExpiration(token);
 
-        // Assert
-        assertTrue(isValid);
+        assertNotNull(expiration);
+        assertTrue(expiration.after(new Date()));
     }
 
     @Test
-    void validateToken_InvalidUsername_ReturnsFalse() {
-        // Arrange
-        String token = jwtUtil.generateToken(testUsername);
+    void extractClaim_ReturnsCorrectClaim() {
+        String token = jwtUtil.generateAccessToken(testUsername);
+        Function<Claims, String> claimResolver = Claims::getSubject;
 
-        // Act
-        boolean isValid = jwtUtil.validateToken(token, "wrong@example.com");
+        String claim = jwtUtil.extractClaim(token, claimResolver);
 
-        // Assert
-        assertFalse(isValid);
+        assertEquals(testUsername, claim);
     }
 
     @Test
-    void extractExpiration_ValidToken_ReturnsExpirationDate() {
-        // Arrange
-        String token = jwtUtil.generateToken(testUsername);
+    void validateToken_CorrectUsernameAndValidToken_ReturnsTrue() {
+        String token = jwtUtil.generateAccessToken(testUsername);
 
-        // Act
-        Date expirationDate = jwtUtil.extractExpiration(token);
-
-        // Assert
-        assertNotNull(expirationDate);
-        assertTrue(expirationDate.after(new Date()));
+        assertTrue(jwtUtil.validateToken(token, testUsername));
     }
 
     @Test
-    void extractClaim_ValidToken_ReturnsClaim() {
-        // Arrange
-        String token = jwtUtil.generateToken(testUsername);
-        Function<Claims, String> claimsResolver = Claims::getSubject;
+    void validateToken_WrongUsername_ReturnsFalse() {
+        String token = jwtUtil.generateAccessToken(testUsername);
 
-        // Act
-        String subject = jwtUtil.extractClaim(token, claimsResolver);
+        assertFalse(jwtUtil.validateToken(token, "wrong@example.com"));
+    }
 
-        // Assert
-        assertEquals(testUsername, subject);
+    @Test
+    void validateToken_ExpiredToken_ReturnsFalse() {
+        Date now = new Date();
+        Date expiredDate = new Date(now.getTime() - 1000 * 60);
+
+        Key key = Keys.hmacShaKeyFor(testSecret.getBytes());
+        String expiredToken = Jwts.builder()
+                .setSubject(testUsername)
+                .setIssuedAt(new Date(now.getTime() - 1000 * 60 * 2))
+                .setExpiration(expiredDate)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        assertFalse(jwtUtil.validateToken(expiredToken, testUsername));
+    }
+
+    @Test
+    void validateRefreshToken_ValidToken_ReturnsTrue() {
+        String refreshToken = jwtUtil.generateRefreshToken(testUsername);
+
+        assertTrue(jwtUtil.validateRefreshToken(refreshToken));
+    }
+
+    @Test
+    void validateRefreshToken_ExpiredToken_ReturnsFalse() {
+        Date now = new Date();
+        Date expiredDate = new Date(now.getTime() - 1000 * 60 * 60);
+
+        Key key = Keys.hmacShaKeyFor(testSecret.getBytes());
+        String expiredRefreshToken = Jwts.builder()
+                .setSubject(testUsername)
+                .setIssuedAt(new Date(now.getTime() - 1000 * 60 * 120))
+                .setExpiration(expiredDate)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        assertFalse(jwtUtil.validateRefreshToken(expiredRefreshToken));
+    }
+
+    @Test
+    void validateToken_MalformedToken_ReturnsFalse() {
+        String malformedToken = "this.is.not.valid";
+
+        assertFalse(jwtUtil.validateToken(malformedToken, testUsername));
+    }
+
+    @Test
+    void validateRefreshToken_MalformedToken_ReturnsFalse() {
+        String malformedToken = "this.is.also.not.valid";
+
+        assertFalse(jwtUtil.validateRefreshToken(malformedToken));
     }
 }
