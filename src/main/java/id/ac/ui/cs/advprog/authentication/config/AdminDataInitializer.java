@@ -17,8 +17,8 @@ public class AdminDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        String defaultAdminEmail = "admin@example.com";
-        String defaultAdminPassword = "admin123";
+        String defaultAdminEmail = "admin@gmail.com";
+        String defaultAdminPassword = "Admin123!";
 
         if (userRepository.findByEmail(defaultAdminEmail).isEmpty()) {
             User admin = User.builder()
@@ -29,7 +29,7 @@ public class AdminDataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(admin);
-            System.out.println("Default admin account created (email: admin@example.com / password: admin123)");
+            System.out.println("Default admin account created (email: admin@gmail.com / password: Admin123!)");
         } else {
             System.out.println("Default admin account already exists.");
         }
