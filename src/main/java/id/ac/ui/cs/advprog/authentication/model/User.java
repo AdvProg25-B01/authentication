@@ -11,6 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "_user")
+@ToString
 public class User {
 
     @Id
@@ -27,5 +28,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Builder.Default
     private boolean active = true;
 }
