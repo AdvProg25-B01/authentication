@@ -8,5 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface TokenRepository extends JpaRepository<Token, Long> {
+    Optional<Token> findByRefreshToken(String refreshToken);
 
+    @Modifying
+    @Transactional
+    void deleteByRefreshToken(String refreshToken);
+
+    @Modifying
+    @Transactional
+    void deleteAllByUser_Id(Long userId);
 }
