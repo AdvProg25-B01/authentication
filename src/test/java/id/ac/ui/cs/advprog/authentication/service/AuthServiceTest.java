@@ -225,7 +225,7 @@ public class AuthServiceTest {
 
         authService.logout(email);
 
-        verify(tokenRepository).deleteAllByUser_Id(1L);
+        verify(tokenRepository).deleteAllByUserId(1L);
     }
 
     @Test
@@ -237,7 +237,7 @@ public class AuthServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> authService.logout(email));
         assertEquals("User not found", exception.getMessage());
 
-        verify(tokenRepository, never()).deleteAllByUser_Id(anyLong());
+        verify(tokenRepository, never()).deleteAllByUserId(anyLong());
     }
 
     @Test

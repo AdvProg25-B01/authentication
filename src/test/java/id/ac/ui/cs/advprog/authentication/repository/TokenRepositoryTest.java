@@ -83,7 +83,7 @@ public class TokenRepositoryTest {
         tokenRepository.save(token1);
         tokenRepository.save(token2);
 
-        tokenRepository.deleteAllByUser_Id(user.getId());
+        tokenRepository.deleteAllByUserId(user.getId());
 
         assertTrue(tokenRepository.findByRefreshToken("token1").isEmpty());
         assertTrue(tokenRepository.findByRefreshToken("token2").isEmpty());

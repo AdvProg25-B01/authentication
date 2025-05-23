@@ -87,7 +87,7 @@ public class AuthService {
     public void logout(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("User not found"));
-        tokenRepository.deleteAllByUser_Id(user.getId());
+        tokenRepository.deleteAllByUserId(user.getId());
     }
 
     public UserProfileResponse getProfile(String email) {
