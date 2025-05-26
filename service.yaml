@@ -1,4 +1,12 @@
+name: b01authentication
+app: authentication
+platform: buildpack
+build:
+  root: .
 http:
+  expose:
+    - port: 8080
+      paths: ["/"]
   middleware:
     headers:
       response:
