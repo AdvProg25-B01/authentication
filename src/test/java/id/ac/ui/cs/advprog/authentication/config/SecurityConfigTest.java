@@ -70,6 +70,7 @@ class SecurityConfigTest {
 
         List<String> allowedOrigins = config.getAllowedOrigins();
         List<String> allowedMethods = config.getAllowedMethods();
+        List<String> allowedHeaders = config.getAllowedHeaders();
 
         assertTrue(allowedOrigins.contains("http://localhost:3000"));
         assertTrue(allowedOrigins.contains("https://main.d2mcs3ch2l35ck.amplifyapp.com"));
@@ -77,7 +78,10 @@ class SecurityConfigTest {
         assertTrue(allowedMethods.contains("POST"));
         assertTrue(allowedMethods.contains("OPTIONS"));
 
-        assertEquals(List.of("*"), config.getAllowedHeaders());
+        assertTrue(allowedHeaders.contains("Authorization"));
+        assertTrue(allowedHeaders.contains("Content-Type"));
+        assertTrue(allowedHeaders.contains("X-Requested-With"));
+
         assertTrue(Boolean.TRUE.equals(config.getAllowCredentials()));
     }
 }
